@@ -501,6 +501,8 @@ if 'webqsp' in hops:
     valid_data_path = '../../data/QA_data/WebQuestionsSP/qa_test_webqsp.txt'
     test_data_path = '../../data/QA_data/WebQuestionsSP/qa_test_webqsp.txt'
 
+print(f'the args is')
+print(args)
 
 if args.mode == 'train':
     train(data_path=data_path, 
