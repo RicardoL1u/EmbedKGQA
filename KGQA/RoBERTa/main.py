@@ -498,8 +498,8 @@ model_name = args.model
 
 if 'webqsp' in hops:
     data_path = '../../data/QA_data/WebQuestionsSP/qa_train_webqsp.txt'
-    valid_data_path = '../../data/QA_data/WebQuestionsSP/qa_test_webqsp_fixed.txt'
-    test_data_path = '../../data/QA_data/WebQuestionsSP/qa_test_webqsp_fixed.txt'
+    valid_data_path = '../../data/QA_data/WebQuestionsSP/qa_test_webqsp.txt'
+    test_data_path = '../../data/QA_data/WebQuestionsSP/qa_test_webqsp.txt'
 
 
 if args.mode == 'train':
