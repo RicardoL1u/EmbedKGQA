@@ -13,13 +13,13 @@ from transformers import *
 
 
 class DatasetMetaQA(Dataset):
-    def __init__(self, data, entities, entity2idx):
+    def __init__(self, data, entity2idx):
         self.data = data
-        self.entities = entities
+        # self.entities = entities
         self.entity2idx = entity2idx
         self.pos_dict = defaultdict(list)
         self.neg_dict = defaultdict(list)
-        self.index_array = list(self.entities.keys())
+        # self.index_array = list(self.entities.keys())
         self.tokenizer_class = RobertaTokenizer
         self.pretrained_weights = 'roberta-base'
         self.tokenizer = self.tokenizer_class.from_pretrained(self.pretrained_weights)

@@ -74,7 +74,7 @@ def train(data_path, neg_batch_size, batch_size, shuffle, num_workers, nb_epochs
     # word2ix,idx2word, max_len = get_vocab(data)
     # hops = str(num_hops)
     device = torch.device(gpu if use_cuda else "cpu")
-    dataset = DatasetMetaQA(data, e, entity2idx)
+    dataset = DatasetMetaQA(data, entity2idx)
     data_loader = DataLoader(dataset, batch_size=batch_size, shuffle=True, num_workers=num_workers)
     print('Creating model...')
     model = RelationExtractor(embedding_dim=embedding_dim, num_entities = len(idx2entity), relation_dim=relation_dim, pretrained_embeddings=embedding_matrix, freeze=freeze, device=device, entdrop = entdrop, reldrop = reldrop, scoredrop = scoredrop, l3_reg = l3_reg, model = model_name, ls = ls, do_batch_norm=do_batch_norm)
@@ -108,7 +108,7 @@ def train(data_path, neg_batch_size, batch_size, shuffle, num_workers, nb_epochs
                     question_tokenized = a[0].to(device)
                     attention_mask = a[1].to(device)
                     positive_head = a[2].to(device)
-                    positive_tail = a[3].to(device)    
+                    positive_tail = a[3].to(device) 
                     loss = model(question_tokenized=question_tokenized, attention_mask=attention_mask, p_head=positive_head, p_tail=positive_tail)
                     loss.backward()
                     optimizer.step()
@@ -178,7 +178,7 @@ def eval(data_path,
     print('Evaluation file processed, making dataloader')
 
     device = torch.device(gpu if use_cuda else "cpu")
-    dataset = DatasetMetaQA(data, e, entity2idx)
+    dataset = DatasetMetaQA(data, entity2idx)
     data_loader = DataLoader(dataset, batch_size=batch_size, shuffle=True, num_workers=num_workers)
     print('Creating model...')
     model = RelationExtractor(embedding_dim=embedding_dim, num_entities = len(idx2entity), relation_dim=relation_dim, 
