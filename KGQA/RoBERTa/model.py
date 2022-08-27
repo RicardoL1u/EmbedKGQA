@@ -227,14 +227,24 @@ class RelationExtractor(nn.Module):
         return question_embedding
 
     def forward(self, question_tokenized, attention_mask, p_head, p_tail):    
+        # question-emb
         question_embedding = self.getQuestionEmbedding(question_tokenized, attention_mask)
+        #print(f'question emb size {question_embedding.shape}') 
+        # convert quesiton-emb to relation-emb // 4.4.1 Relation Matching
         rel_embedding = self.applyNonLinear(question_embedding)
+        #print(f'rel embeddings shape {rel_embedding.shape}') 
+        # topic entity emb
         p_head = self.embedding(p_head)
-        pred = self.getScores(p_head, rel_embedding)
+        #print(f"p_head shape {p_head.shape}") 
+        # ComplEX or 
+        pred = self.getScores(p_head, rel_embedding) # [bsz,entitiy_num in KG]
+        #print(f'pred shape {pred.shape}')
         actual = p_tail
         if self.label_smoothing:
-            actual = ((1.0-self.label_smoothing)*actual) + (1.0/actual.size(1)) 
+            actual = ((1.0-self.label_smoothing)*actual) + (1.0/actual.size(1))
+        #print(f'actual shape {actual.shape}')
         loss = self.loss(pred, actual)
+        # add l3 reg to fine-tune pretrained KG entity embeddings 
         if not self.freeze:
             if self.l3_reg:
                 norm = torch.norm(self.embedding.weight, p=3, dim=-1)
