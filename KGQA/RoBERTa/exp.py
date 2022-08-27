@@ -1,9 +1,9 @@
 # %%
 from transformers import RobertaModel,RobertaTokenizer
 from utils import *
-
+import torch
 # %%
-device = torch.device(7)
+device = torch.device(6)
 
 
 # %%
@@ -36,7 +36,14 @@ from dataloader import DatasetMetaQA, DataLoaderMetaQA
 
 # %%
 data_path = '../../data/QA_data/WebQuestionsSP/qa_train_webqsp.txt'
+print(type(e))
+print(list(e.keys())[:30])
 entity2idx, idx2entity, embedding_matrix = prepare_embeddings(e)
+print(type(entity2idx))
+print(type(idx2entity))
+print(type(embedding_matrix))
+print(type(embedding_matrix[0]))
+print(embedding_matrix[0].shape)
 data = process_text_file(data_path, split=False)
 print('Train file processed, making dataloader')
 # word2ix,idx2word, max_len = get_vocab(data)
