@@ -6,6 +6,7 @@ import torch.nn as nn
 import pickle
 from tqdm import tqdm
 import argparse
+import pickle
 import operator
 from torch.nn import functional as F
 from dataloader import DatasetMetaQA, DataLoaderMetaQA
@@ -56,19 +57,27 @@ args = parser.parse_args()
 
 def train(data_path, neg_batch_size, batch_size, shuffle, num_workers, nb_epochs, embedding_dim, hidden_dim, relation_dim, gpu, use_cuda,patience, freeze, validate_every, hops, lr, entdrop, reldrop, scoredrop, l3_reg, model_name, decay, ls, load_from, outfile, do_batch_norm, valid_data_path=None):
     print('Loading entities and relations')
-    kg_type = 'full'
-    if 'half' in hops:
-        kg_type = 'half'
-    checkpoint_file = '../../pretrained_models/embeddings/ComplEx_fbwq_' + kg_type + '/checkpoint_best.pt'
-    print('Loading kg embeddings from', checkpoint_file)
-    kge_checkpoint = load_checkpoint(checkpoint_file)
-    kge_model = KgeModel.create_from(kge_checkpoint)
-    kge_model.eval()
-    e = getEntityEmbeddings(kge_model, hops)
+    entity2idx, idx2entity, embedding_matrix = None,None,None
+    if 'wikidata5m' in hops:
+        with open("complex_wikidata5m.pkl", "rb") as fin:
+            wiki5m = pickle.load(fin)
+        entity2idx = wiki5m.graph.entity2id
+        idx2entity = {v:k for k,v in  entity2idx.items()}
+        embedding_matrix = torch.tensor(wiki5m.solver.entity_embeddings)
+    else:
+        kg_type = 'full'
+        if 'half' in hops:
+            kg_type = 'half'
+        checkpoint_file = '../../pretrained_models/embeddings/ComplEx_fbwq_' + kg_type + '/checkpoint_best.pt'
+        print('Loading kg embeddings from', checkpoint_file)
+        kge_checkpoint = load_checkpoint(checkpoint_file)
+        kge_model = KgeModel.create_from(kge_checkpoint)
+        kge_model.eval()
+        e = getEntityEmbeddings(kge_model, hops)
+        entity2idx, idx2entity, embedding_matrix = prepare_embeddings(e)
 
     print('Loaded entities and relations')
 
-    entity2idx, idx2entity, embedding_matrix = prepare_embeddings(e)
     data = process_text_file(data_path, split=False)
     print('Train file processed, making dataloader')
     # word2ix,idx2word, max_len = get_vocab(data)
@@ -161,15 +170,24 @@ def eval(data_path,
     use_cuda):
 
     print('Loading entities and relations')
-    kg_type = 'full'
-    if 'half' in hops:
-        kg_type = 'half'
-    checkpoint_file = '../../pretrained_models/embeddings/ComplEx_fbwq_' + kg_type + '/checkpoint_best.pt'
-    print('Loading kg embeddings from', checkpoint_file)
-    kge_checkpoint = load_checkpoint(checkpoint_file)
-    kge_model = KgeModel.create_from(kge_checkpoint)
-    kge_model.eval()
-    e = getEntityEmbeddings(kge_model, hops)
+    entity2idx, idx2entity, embedding_matrix = None,None,None
+    if 'wikidata5m' in hops:
+        with open("complex_wikidata5m.pkl", "rb") as fin:
+            wiki5m = pickle.load(fin)
+        entity2idx = wiki5m.graph.entity2id
+        idx2entity = {v:k for k,v in  entity2idx.items()}
+        embedding_matrix = torch.tensor(wiki5m.solver.entity_embeddings)
+    else:
+        kg_type = 'full'
+        if 'half' in hops:
+            kg_type = 'half'
+        checkpoint_file = '../../pretrained_models/embeddings/ComplEx_fbwq_' + kg_type + '/checkpoint_best.pt'
+        print('Loading kg embeddings from', checkpoint_file)
+        kge_checkpoint = load_checkpoint(checkpoint_file)
+        kge_model = KgeModel.create_from(kge_checkpoint)
+        kge_model.eval()
+        e = getEntityEmbeddings(kge_model, hops)
+        entity2idx, idx2entity, embedding_matrix = prepare_embeddings(e)
 
     print('Loaded entities and relations')
 
@@ -219,6 +237,7 @@ print(f'the args is')
 print(args)
 
 if args.mode == 'train':
+    print(args)
     train(data_path=data_path, 
     neg_batch_size=args.neg_batch_size, 
     batch_size=args.batch_size,
