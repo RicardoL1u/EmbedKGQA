@@ -1,12 +1,13 @@
+# relation dim should be half of entity embedding
 TRANSFORMERS_OFFLINE=1 python3 main.py \
     --mode train \
-    --relation_dim 200 \
+    --relation_dim 128 \
     --do_batch_norm 1 \
-    --gpu 2 \
+    --gpu 0 \
     --freeze 1 \
-    --batch_size 16 \
+    --batch_size 2 \
     --validate_every 10 \
-    --hops webqsp_half \       
+    --hops webqsp_full \
     --lr 0.00002 \
     --entdrop 0.0 \
     --reldrop 0.0 \
@@ -17,4 +18,4 @@ TRANSFORMERS_OFFLINE=1 python3 main.py \
     --ls 0.05 \
     --l3_reg 0.001 \
     --nb_epochs 200 \
-    --outfile half_fbwq
+    --outfile full_fbwq
