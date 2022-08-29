@@ -102,10 +102,7 @@ def train(data_path, neg_batch_size, batch_size, shuffle, num_workers, nb_epochs
     no_update = 0
     # time.sleep(10)
     for epoch in range(nb_epochs):
-        phases = []
-        for i in range(validate_every):
-            phases.append('train')
-        phases.append('valid')
+        phases = ['train'] * validate_every + ['valid']
         for phase in phases:
             if phase == 'train':
                 model.train()
