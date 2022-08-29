@@ -124,6 +124,88 @@ def inTopk(scores, ans, k):
             result = True
     return result
 
+def validate(dataset,model,device,writeCandidatesToFile=False):
+    hit_at_10 = 0
+    answers = []
+    candidates_with_scores = []
+    num_incorrect = 0
+    total_correct = 0
+    # data_loader = DataLoader(dataset, batch_size=batch_size, shuffle=True, num_workers=num_workers)
+    for d in tqdm(dataset):
+        # try:
+        question_tokenized = d[0].to(device)
+        attention_mask = d[1].to(device)
+        head = d[2].to(device)
+        ans = d[3].to(device)
+        scores = model.get_score_ranked(head=head, question_tokenized=question_tokenized, attention_mask=attention_mask)[0]
+        # candidates = qa_nbhood_list[i]
+        # mask = torch.from_numpy(getMask(candidates, entity2idx)).to(device)
+        # following 2 lines for no neighbourhood check
+        mask = torch.zeros(len(dataset.entity2idx)).to(device)
+        mask[head] = 1
+        #reduce scores of all non-candidates
+        new_scores = scores - (mask*99999)
+        pred_ans = torch.argmax(new_scores).item()
+        # new_scores = new_scores.cpu().detach().numpy()
+        # scores_list.append(new_scores)
+        if pred_ans == head.item():
+            print('Head and answer same')
+            print(torch.max(new_scores))
+            print(torch.min(new_scores))
+        # pred_ans = getBest(scores, candidates)
+        # if ans[0] not in candidates:
+        #     print('Answer not in candidates')
+            # print(len(candidates))
+            # exit(0)
+        
+        if writeCandidatesToFile:
+            entry = {}
+            entry['question'] = d[-1]
+            head_text = dataset.idx2entity[head.item()]
+            entry['head'] = head_text
+            s, c =  torch.topk(new_scores, 200)
+            s = s.cpu().detach().numpy()
+            c = c.cpu().detach().numpy()
+            cands = []
+            for cand in c:
+                cands.append(dataset.idx2entity[cand])
+            entry['scores'] = s
+            entry['candidates'] = cands
+            correct_ans = []
+            for a in ans:
+                correct_ans.append(dataset.idx2entity[a.item()])
+            entry['answers'] = correct_ans
+            candidates_with_scores.append(entry)
+
+
+        if inTopk(new_scores, ans, 10):
+            hit_at_10 += 1
+
+        if type(ans) is int:
+            ans = [ans]
+        is_correct = 0
+        if pred_ans in ans:
+            total_correct += 1
+            is_correct = 1
+        else:
+            num_incorrect += 1
+        q_text = d[0]
+        answers.append(dataset.tokenizer.decode(q_text) + '\t' + str(pred_ans) + '\t' + str(is_correct))
+        # except:
+        #     error_count += 1
+        
+    if writeCandidatesToFile:
+        # pickle.dump(candidates_with_scores, open('candidates_with_score_and_qe_half.pkl', 'wb'))
+        pickle.dump(candidates_with_scores, open('webqsp_scores_full_kg_fixed.pkl', 'wb'))
+        print('wrote candidate file (for future answer processing)')
+    # np.save("scores_webqsp_complex.npy", scores_list)
+    # exit(0)
+    # print(hit_at_10/len(data))
+    accuracy = total_correct/len(dataset)
+    # print('Error mean rank: %f' % (incorrect_rank_sum/num_incorrect))
+    # print('%d out of %d incorrect were not in top 50' % (not_in_top_50_count, num_incorrect))
+    return answers, accuracy
+
 def validate_v2(data_path, device, model, dataloader, entity2idx, model_name, writeCandidatesToFile=False):
     model.eval()
     data = process_text_file(data_path)

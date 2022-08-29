@@ -131,7 +131,11 @@ def train(data_path, neg_batch_size, batch_size, shuffle, num_workers, nb_epochs
             elif phase=='valid':
                 model.eval()
                 eps = 0.0001
-                answers, score = validate_v2(model=model, data_path= valid_data_path, entity2idx=entity2idx, dataloader=dataset, device=device, model_name=model_name)
+                if '5m' not in hops: 
+                    answers, score = validate_v2(model=model, data_path=valid_data_path, entity2idx=entity2idx, dataloader=dataset, device=device, model_name=model_name)
+                else:
+                    valid_dataset = DatasetAnonyQA(json.load(open(valid_data_path)), entity2idx,tokenizer)
+                    answers, score = validate(valid_dataset,model,device)
                 if score > best_score + eps:
                     best_score = score
                     no_update = 0
