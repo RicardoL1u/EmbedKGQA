@@ -3,7 +3,7 @@ from transformers import RobertaModel,RobertaTokenizer
 from utils import *
 import torch
 # %%
-device = torch.device(6)
+device = torch.device(7)
 
 
 # %%
@@ -49,7 +49,7 @@ print('Train file processed, making dataloader')
 # word2ix,idx2word, max_len = get_vocab(data)
 # hops = str(num_hops)
 device = torch.device(device)
-dataset = DatasetMetaQA(data, e, entity2idx)
+dataset = DatasetMetaQA(data, entity2idx)
 data_loader = DataLoader(dataset, batch_size=1, shuffle=False, num_workers=2)
 
 # %%
@@ -62,29 +62,8 @@ positive_head = a[2].to(device)
 positive_tail = a[3].to(device)  
 
 # %%
-roberta_tokenizer.decode(question_tokenized[0].tolist(),skip_special_tokens=True)
-
-# %%
-question_tokenized[0]
-
-# %%
-test = roberta_tokenizer.encode('There is a test')
-roberta_tokenizer.decode(test)
-
-# %%
-
-
-# %%
-device
-
-
-# %%
-question_tokenized
-
-# %%
-roberta_model(question_tokenized, attention_mask=attention_mask)
-
-# %%
-
+print(question_tokenized.shape)
+print(positive_head.shape)
+print(positive_tail.shape)
 
 
