@@ -7,14 +7,12 @@ import pickle
 from tqdm import tqdm
 import argparse
 import pickle
-import operator
-from torch.nn import functional as F
-from dataloader import DatasetMetaQA, DataLoaderMetaQA
+import json
+from dataloader import DatasetMetaQA, DatasetAnonyQA
 from model import RelationExtractor
 from torch.optim.lr_scheduler import ExponentialLR, ReduceLROnPlateau
-import networkx as nx
 from utils import *
-import time
+from transformers import RobertaTokenizer
 import sys
 sys.path.append("../..") # Adds higher directory to python modules path.
 from kge.model import KgeModel
@@ -77,16 +75,23 @@ def train(data_path, neg_batch_size, batch_size, shuffle, num_workers, nb_epochs
         entity2idx, idx2entity, embedding_matrix = prepare_embeddings(e)
 
     print('Loaded entities and relations')
-
-    data = process_text_file(data_path, split=False)
-    print('Train file processed, making dataloader')
-    # word2ix,idx2word, max_len = get_vocab(data)
-    # hops = str(num_hops)
     device = torch.device(gpu if use_cuda else "cpu")
-    dataset = DatasetMetaQA(data, entity2idx)
+    tokenizer = RobertaTokenizer.from_pretrained('roberta-base')
+    if '5m' in hops:
+        special_tokens = ['<spt>']
+        print(f'add speciall tokens {special_tokens}')
+        tokenizer.add_tokens(special_tokens,special_tokens=True)
+
+    dataset = DatasetMetaQA(process_text_file(data_path, split=False), entity2idx,tokenizer) if '5m' not in hops \
+        else DatasetAnonyQA(json.load(open(data_path)), entity2idx,tokenizer)
+
     data_loader = DataLoader(dataset, batch_size=batch_size, shuffle=True, num_workers=num_workers)
     print('Creating model...')
-    model = RelationExtractor(embedding_dim=embedding_dim, num_entities = len(idx2entity), relation_dim=relation_dim, pretrained_embeddings=embedding_matrix, freeze=freeze, device=device, entdrop = entdrop, reldrop = reldrop, scoredrop = scoredrop, l3_reg = l3_reg, model = model_name, ls = ls, do_batch_norm=do_batch_norm)
+    model = RelationExtractor(embedding_dim=embedding_dim, num_entities = len(idx2entity), 
+        relation_dim=relation_dim, pretrained_embeddings=embedding_matrix, freeze=freeze, 
+        device=device, entdrop = entdrop, reldrop = reldrop, scoredrop = scoredrop, 
+        l3_reg = l3_reg, model = model_name, ls = ls, do_batch_norm=do_batch_norm,
+        tokenizer=tokenizer,special_tokens='5m' in hops)
     print('Model created!')
     if load_from != '':
         # model.load_state_dict(torch.load("checkpoints/roberta_finetune/" + load_from + ".pt"))
@@ -197,12 +202,20 @@ def eval(data_path,
     print('Evaluation file processed, making dataloader')
 
     device = torch.device(gpu if use_cuda else "cpu")
-    dataset = DatasetMetaQA(data, entity2idx)
+
+    tokenizer = RobertaTokenizer.from_pretrained('roberta-base')
+    if '5m' in hops:
+        special_tokens = ['<spt>']
+        print(f'add speciall tokens {special_tokens}')
+        tokenizer.add_tokens(special_tokens,special_tokens=True)
+
+    dataset = DatasetMetaQA(process_text_file(data_path, split=False), entity2idx,tokenizer) if '5m' not in hops \
+        else DatasetAnonyQA(json.load(open(data_path)), entity2idx,tokenizer)
     data_loader = DataLoader(dataset, batch_size=batch_size, shuffle=True, num_workers=num_workers)
     print('Creating model...')
     model = RelationExtractor(embedding_dim=embedding_dim, num_entities = len(idx2entity), relation_dim=relation_dim, 
                               pretrained_embeddings=embedding_matrix, device=device, 
-                              model = model_name, do_batch_norm=do_batch_norm)
+                              model = model_name, do_batch_norm=do_batch_norm,tokenizer=tokenizer,special_tokens='5m' in hops)
     print('Model created!')
     if load_from != '':
         # model.load_state_dict(torch.load("checkpoints/roberta_finetune/" + load_from + ".pt"))
@@ -233,6 +246,10 @@ if 'webqsp' in hops:
     data_path = '../../data/QA_data/WebQuestionsSP/qa_train_webqsp.txt'
     valid_data_path = '../../data/QA_data/WebQuestionsSP/qa_test_webqsp.txt'
     test_data_path = '../../data/QA_data/WebQuestionsSP/qa_test_webqsp.txt'
+elif '5m' in hops:
+    data_path = '/data/lyt/exp/EmbedKGQA/train.json'
+    valid_data_path = '/data/lyt/exp/EmbedKGQA/eval.json'
+    test_data_path = 'data/lyt/exp/EmbedKGQA/test.json'
 
 print(f'the args is')
 print(args)
