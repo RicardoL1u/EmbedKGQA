@@ -8,6 +8,9 @@ pretrained_models.zip
 # checkpoint files
 *.pt
 
+# do not track json file
+*.json
+
 # pkl
 *.pkl
 
