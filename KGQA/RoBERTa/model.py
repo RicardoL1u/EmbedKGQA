@@ -226,7 +226,10 @@ class RelationExtractor(nn.Module):
         # question_embedding = torch.mean(roberta_last_hidden_states, dim=1)
         return question_embedding
 
-    def forward(self, question_tokenized, attention_mask, p_head, p_tail):    
+    def forward(self, question_tokenized, attention_mask, p_head, p_tail):
+        #print(f'question emb size {question_tokenized.shape}')
+        #print(f'p_head is {p_head}')
+        #print(f'p_tail is {p_tail.shape}') 
         # question-emb
         question_embedding = self.getQuestionEmbedding(question_tokenized, attention_mask)
         #print(f'question emb size {question_embedding.shape}') 
