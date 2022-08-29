@@ -24,6 +24,11 @@ class RelationExtractor(nn.Module):
             print('Not doing batch norm')
         self.roberta_pretrained_weights = 'roberta-base'
         self.roberta_model = RobertaModel.from_pretrained(self.roberta_pretrained_weights)
+
+        ## add resize
+        if special_tokens:
+            self.roberta_model.resize_token_embeddings(len(tokenizer))
+        
         for param in self.roberta_model.parameters():
             param.requires_grad = True
         if self.model == 'DistMult':
@@ -71,7 +76,11 @@ class RelationExtractor(nn.Module):
         # random.shuffle(pretrained_embeddings)
         # print(pretrained_embeddings[0])
         print('Frozen:', self.freeze)
-        self.embedding = nn.Embedding.from_pretrained(torch.stack(pretrained_embeddings, dim=0), freeze=self.freeze)
+        self.embedding = None
+        if type(pretrained_embeddings) == list:
+            self.embedding = nn.Embedding.from_pretrained(torch.stack(pretrained_embeddings, dim=0), freeze=self.freeze)
+        else:
+            self.embedding = nn.Embedding.from_pretrained(pretrained_embeddings, freeze=self.freeze)
         # self.embedding = nn.Embedding.from_pretrained(torch.FloatTensor(pretrained_embeddings), freeze=self.freeze)
         print(self.embedding.weight.shape)
         # self.embedding = nn.Embedding(self.num_entities, self.relation_dim)
