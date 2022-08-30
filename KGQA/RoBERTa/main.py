@@ -56,8 +56,8 @@ args = parser.parse_args()
 def train(data_path, neg_batch_size, batch_size, shuffle, num_workers, nb_epochs, embedding_dim, hidden_dim, relation_dim, gpu, use_cuda,patience, freeze, validate_every, hops, lr, entdrop, reldrop, scoredrop, l3_reg, model_name, decay, ls, load_from, outfile, do_batch_norm, valid_data_path=None):
     print('Loading entities and relations')
     entity2idx, idx2entity, embedding_matrix = None,None,None
-    if 'wikidata5m' in hops:
-        with open("complex_wikidata5m.pkl", "rb") as fin:
+    if '5m' in hops:
+        with open(f"{hops}.pkl", "rb") as fin:
             wiki5m = pickle.load(fin)
         entity2idx = wiki5m.graph.entity2id
         idx2entity = {v:k for k,v in  entity2idx.items()}
@@ -132,7 +132,7 @@ def train(data_path, neg_batch_size, batch_size, shuffle, num_workers, nb_epochs
 
             elif phase=='valid':
                 model.eval()
-                eps = 0.0001
+                eps = 0.0001                                                                                                                                                                                                                                                                                                                  
                 if '5m' not in hops: 
                     answers, score = validate_v2(model=model, data_path=valid_data_path, entity2idx=entity2idx, dataloader=dataset, device=device, model_name=model_name)
                 else:
@@ -144,7 +144,7 @@ def train(data_path, neg_batch_size, batch_size, shuffle, num_workers, nb_epochs
                     best_model = model.state_dict()
                     print(hops + " hop Validation accuracy (no relation scoring) increased from previous epoch", score)
                     # writeToFile(answers, 'results_' + model_name + '_' + hops + '.txt')
-                    torch.save(best_model, "checkpoints/roberta_finetune/best_score_model.pt")
+                    torch.save(best_model, f"checkpoints/roberta_finetune/{outfile}_best_score_model.pt")
                     torch.save(best_model, "checkpoints/roberta_finetune/" + outfile + ".pt")
                 elif (score < best_score + eps) and (no_update < patience):
                     no_update +=1
@@ -177,8 +177,8 @@ def eval(data_path,
 
     print('Loading entities and relations')
     entity2idx, idx2entity, embedding_matrix = None,None,None
-    if 'wikidata5m' in hops:
-        with open("complex_wikidata5m.pkl", "rb") as fin:
+    if '5m' in hops:
+        with open(f"{hops}.pkl", "rb") as fin:
             wiki5m = pickle.load(fin)
         entity2idx = wiki5m.graph.entity2id
         idx2entity = {v:k for k,v in  entity2idx.items()}
@@ -286,7 +286,7 @@ if args.mode == 'train':
 
 elif args.mode == 'eval':
     eval(data_path = test_data_path,
-    load_from=args.load_from,
+    load_from=args.outfile+'_best_score_model',
     gpu=args.gpu,
     hidden_dim=args.hidden_dim,
     relation_dim=args.relation_dim,
