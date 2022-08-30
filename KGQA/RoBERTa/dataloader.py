@@ -29,7 +29,6 @@ class DatasetAnonyQA(Dataset):
 
     def toOneHot(self, indices):
         indices = torch.LongTensor(indices)
-        batch_size = len(indices)
         vec_len = len(self.entity2idx)
         one_hot = torch.FloatTensor(vec_len)
         one_hot.zero_()
@@ -131,20 +130,4 @@ class DatasetMetaQA(Dataset):
             else:
                 attention_mask.append(1)
         return question_tokenized, torch.tensor(attention_mask, dtype=torch.long)
-
-# def _collate_fn(batch):
-#     print(len(batch))
-#     exit(0)
-#     question_tokenized = batch[0]
-#     attention_mask = batch[1]
-#     head_id = batch[2]
-#     tail_onehot = batch[3]
-#     question_tokenized = torch.stack(question_tokenized, dim=0)
-#     attention_mask = torch.stack(attention_mask, dim=0)
-#     return question_tokenized, attention_mask, head_id, tail_onehot 
-
-# class DataLoaderMetaQA(DataLoader):
-#     def __init__(self, *args, **kwargs):
-#         super(DataLoaderMetaQA, self).__init__(*args, **kwargs)
-#         self.collate_fn = _collate_fn
 
