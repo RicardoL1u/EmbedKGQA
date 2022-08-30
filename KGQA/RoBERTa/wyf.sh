@@ -3,11 +3,11 @@ TRANSFORMERS_OFFLINE=1 python3 main.py \
     --mode eval \
     --relation_dim 256 \
     --do_batch_norm 1 \
-    --gpu 3 \
-    --freeze 1 \
-    --batch_size 8 \
+    --gpu 0 \
+    --freeze 0 \
+    --batch_size 4 \
     --validate_every 1 \
-    --hops complex_wikidata5m \
+    --hops complex_wyf_big5m \
     --lr 0.00002 \
     --entdrop 0.0 \
     --reldrop 0.0 \
@@ -17,5 +17,5 @@ TRANSFORMERS_OFFLINE=1 python3 main.py \
     --patience 4 \
     --ls 0.05 \
     --l3_reg 0.001 \
-    --nb_epochs 20 \
-    --outfile complex_wikidata5m
+    --nb_epochs 30 \
+    --outfile complex_wyf_big5m
