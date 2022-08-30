@@ -197,8 +197,6 @@ def eval(data_path,
 
     print('Loaded entities and relations')
 
-    entity2idx, idx2entity, embedding_matrix = prepare_embeddings(e)
-    data = process_text_file(data_path, split=False)
     print('Evaluation file processed, making dataloader')
 
     device = torch.device(gpu if use_cuda else "cpu")
@@ -249,7 +247,7 @@ if 'webqsp' in hops:
 elif '5m' in hops:
     data_path = '/data/lyt/exp/EmbedKGQA/train.json'
     valid_data_path = '/data/lyt/exp/EmbedKGQA/eval.json'
-    test_data_path = 'data/lyt/exp/EmbedKGQA/test.json'
+    test_data_path = '/data/lyt/exp/EmbedKGQA/test.json'
 
 print(f'the args is')
 print(args)
