@@ -112,7 +112,7 @@ def train(data_path, neg_batch_size, batch_size, shuffle, num_workers, nb_epochs
             if phase == 'train':
                 model.train()
                 # model.apply(set_bn_eval)
-                loader = tqdm(data_loader, total=len(data_loader), unit="batches")
+                loader = tqdm(data_loader, total=len(data_loader), unit="batches",mininterval=120.0)
                 running_loss = 0
                 for i_batch, a in enumerate(loader):
                     model.zero_grad()
@@ -124,9 +124,10 @@ def train(data_path, neg_batch_size, batch_size, shuffle, num_workers, nb_epochs
                     loss.backward()
                     optimizer.step()
                     running_loss += loss.item()
-                    loader.set_postfix(Loss=running_loss/((i_batch+1)*batch_size), Epoch=epoch)
-                    loader.set_description('{}/{}'.format(epoch, nb_epochs))
-                    loader.update()
+                    if i_batch % 300 == 0:
+                        loader.set_postfix(Loss=running_loss/((i_batch+1)*batch_size), Epoch=epoch)
+                        loader.set_description('{}/{}'.format(epoch, nb_epochs))
+                        loader.update()
                 
                 scheduler.step()
 

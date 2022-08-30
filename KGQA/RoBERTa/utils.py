@@ -135,7 +135,7 @@ def validate(dataset,model,device,writeCandidatesToFile=False,data_path=None,hop
     if writeCandidatesToFile and data_path is not None:
         with open(data_path) as f:
             ori_data_list = json.load(f)
-    for idx,d in tqdm(zip(range(len(dataset)),dataset),total=len(dataset)):
+    for idx,d in tqdm(zip(range(len(dataset)),dataset),total=len(dataset),mininterval=5.0):
         # try:
         question_tokenized = d[0].to(device)
         attention_mask = d[1].to(device)
