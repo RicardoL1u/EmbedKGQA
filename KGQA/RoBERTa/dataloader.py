@@ -51,28 +51,16 @@ class DatasetAnonyQA(Dataset):
         
         head_id = self.entity2idx[data_point['topic_entity']]
         tail_ids = []
+        not_in_kg = []
         for tail_name in data_point['ans_ids']:
             tail_name = tail_name.strip()
             #TODO: dunno if this is right way of doing things
             if tail_name in self.entity2idx:
                 tail_ids.append(self.entity2idx[tail_name])
+            else:
+                not_in_kg.append(tail_name)
         tail_onehot = self.toOneHot(tail_ids)
-        # print(type(head_id),type(tail_onehot))
-        return tokenized_result['input_ids'].squeeze(), tokenized_result['attention_mask'].squeeze(), torch.tensor(head_id), tail_onehot 
-
-    # def tokenize_question(self, question):
-    #     question = "<s> " + question + " </s>"
-    #     question_tokenized = self.tokenizer.tokenize(question)
-    #     question_tokenized = self.pad_sequence(question_tokenized, 64)
-    #     question_tokenized = torch.tensor(self.tokenizer.encode(question_tokenized, add_special_tokens=False))
-    #     attention_mask = []
-    #     for q in question_tokenized:
-    #         # 1 means padding token
-    #         if q == 1:
-    #             attention_mask.append(0)
-    #         else:
-    #             attention_mask.append(1)
-    #     return question_tokenized, torch.tensor(attention_mask, dtype=torch.long)
+        return tokenized_result['input_ids'].squeeze(), tokenized_result['attention_mask'].squeeze(), torch.tensor(head_id), tail_onehot, not_in_kg 
 
 class DatasetMetaQA(Dataset):
     def __init__(self, data, entity2idx,tokenizer):

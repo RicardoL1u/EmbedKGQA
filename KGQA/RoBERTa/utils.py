@@ -1,6 +1,7 @@
-# import os
+import json
 import torch
 import numpy as np
+from pathlib import Path
 # from torch.utils.data import Dataset, DataLoader
 # import torch.nn as nn
 import pickle
@@ -17,6 +18,11 @@ import sys
 sys.path.append("../..") # Adds higher directory to python modules path.
 # from kge.model import KgeModel
 # from kge.util.io import load_checkpoint
+
+print('loading wikidata qid2entity_name')
+with open('/data/lyt/wikidata-full/wikidata-item-en-label.json') as f:
+    qid2entity_name_map = json.load(f)
+print('loaded qid 2 entity name')
 
 def str2bool(v):
     if isinstance(v, bool):
@@ -124,87 +130,51 @@ def inTopk(scores, ans, k):
             result = True
     return result
 
-def validate(dataset,model,device,writeCandidatesToFile=False):
-    hit_at_10 = 0
-    answers = []
-    candidates_with_scores = []
-    num_incorrect = 0
-    total_correct = 0
-    # data_loader = DataLoader(dataset, batch_size=batch_size, shuffle=True, num_workers=num_workers)
-    for d in tqdm(dataset):
+def validate(dataset,model,device,writeCandidatesToFile=False,data_path=None,hops=None):
+    total_acc = 0
+    if writeCandidatesToFile and data_path is not None:
+        with open(data_path) as f:
+            ori_data_list = json.load(f)
+    for idx,d in tqdm(zip(range(len(dataset)),dataset),total=len(dataset)):
         # try:
         question_tokenized = d[0].to(device)
         attention_mask = d[1].to(device)
         head = d[2].to(device)
         ans = d[3].to(device)
+        not_in_kg = d[4]
+        not_in_kg_num = len(not_in_kg)
         scores = model.get_score_ranked(head=head, question_tokenized=question_tokenized, attention_mask=attention_mask)[0]
-        # candidates = qa_nbhood_list[i]
-        # mask = torch.from_numpy(getMask(candidates, entity2idx)).to(device)
-        # following 2 lines for no neighbourhood check
         mask = torch.zeros(len(dataset.entity2idx)).to(device)
         mask[head] = 1
-        #reduce scores of all non-candidates
         new_scores = scores - (mask*99999)
-        pred_ans = torch.argmax(new_scores).item()
-        # new_scores = new_scores.cpu().detach().numpy()
-        # scores_list.append(new_scores)
-        if pred_ans == head.item():
-            print('Head and answer same')
-            print(torch.max(new_scores))
-            print(torch.min(new_scores))
-        # pred_ans = getBest(scores, candidates)
-        # if ans[0] not in candidates:
-        #     print('Answer not in candidates')
-            # print(len(candidates))
-            # exit(0)
-        
+        probs = torch.softmax(new_scores,dim=0)
+        preds = (probs > 1e-2)
+        ans = ans == 1
+        matchs = torch.logical_and(preds,ans)
+
+        ans_num = ans.sum().cpu().detach().item()
+        correct_num = matchs.sum().cpu().detach().item()
+        pred_num = preds.sum().cpu().detach().item()
+        total_ans_num = ans_num + not_in_kg_num
+        p1 = total_ans_num / pred_num if pred_num > total_ans_num else  pred_num / total_ans_num
+        acc = correct_num / pred_num if pred_num != 0 else 0
+        total_acc += (acc*p1)
+
         if writeCandidatesToFile:
-            entry = {}
-            entry['question'] = d[-1]
-            head_text = dataset.idx2entity[head.item()]
-            entry['head'] = head_text
-            s, c =  torch.topk(new_scores, 200)
-            s = s.cpu().detach().numpy()
-            c = c.cpu().detach().numpy()
-            cands = []
-            for cand in c:
-                cands.append(dataset.idx2entity[cand])
-            entry['scores'] = s
-            entry['candidates'] = cands
-            correct_ans = []
-            for a in ans:
-                correct_ans.append(dataset.idx2entity[a.item()])
-            entry['answers'] = correct_ans
-            candidates_with_scores.append(entry)
-
-
-        if inTopk(new_scores, ans, 10):
-            hit_at_10 += 1
-
-        if type(ans) is int:
-            ans = [ans]
-        is_correct = 0
-        if pred_ans in ans:
-            total_correct += 1
-            is_correct = 1
-        else:
-            num_incorrect += 1
-        q_text = d[0]
-        answers.append(dataset.tokenizer.decode(q_text) + '\t' + str(pred_ans) + '\t' + str(is_correct))
-        # except:
-        #     error_count += 1
-        
+            ori_data_list[idx]['not_in_kg'] = not_in_kg
+            # print(probs[:100])
+            # print(preds[:100])
+            # print(ori_data_list[idx]['text'])
+            # print(ori_data_list[idx]['question'])
+            preds_ids = preds.nonzero().squeeze().cpu().detach().numpy()
+            ori_data_list[idx]['pred_qids'] = [dataset.idx2entity[idx] for idx in preds_ids] if preds_ids.size != 1 else [dataset.idx2entity[preds_ids.item()]]
+            ori_data_list[idx]['pred_names'] = [qid2entity_name_map[qid] for qid in ori_data_list[idx]['pred_qids']]
     if writeCandidatesToFile:
-        # pickle.dump(candidates_with_scores, open('candidates_with_score_and_qe_half.pkl', 'wb'))
-        pickle.dump(candidates_with_scores, open('webqsp_scores_full_kg_fixed.pkl', 'wb'))
-        print('wrote candidate file (for future answer processing)')
-    # np.save("scores_webqsp_complex.npy", scores_list)
-    # exit(0)
-    # print(hit_at_10/len(data))
-    accuracy = total_correct/len(dataset)
-    # print('Error mean rank: %f' % (incorrect_rank_sum/num_incorrect))
-    # print('%d out of %d incorrect were not in top 50' % (not_in_top_50_count, num_incorrect))
-    return answers, accuracy
+        data_path = Path(data_path)
+        with open(data_path.parent.joinpath(f'{hops}_{data_path.name}'),'w') as f:
+            json.dump(ori_data_list,f,indent=4,ensure_ascii=False)
+
+    return None, total_acc / len(dataset)
 
 def validate_v2(data_path, device, model, dataloader, entity2idx, model_name, writeCandidatesToFile=False):
     model.eval()

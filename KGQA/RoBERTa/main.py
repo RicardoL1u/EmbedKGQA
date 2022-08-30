@@ -226,10 +226,8 @@ def eval(data_path,
         exit(0)
     
     model.to(device)
-    answers, score = validate_v2(model=model, data_path= data_path, 
-                                 entity2idx=entity2idx, dataloader=dataset, 
-                                 device=device, model_name=model_name,
-                                 writeCandidatesToFile=True)
+    answers, score = validate(dataset=dataset,model=model,device=device,
+                                 writeCandidatesToFile=True,data_path=data_path,hops=hops)
     print('Score', score)
 
 
