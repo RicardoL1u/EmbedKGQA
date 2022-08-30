@@ -8,7 +8,7 @@ from torch.nn.utils.rnn import pad_packed_sequence, pack_padded_sequence
 import torch.nn.functional as F
 import numpy as np
 from torch.nn.init import xavier_normal_
-from transformers import *
+from transformers import RobertaModel
 
 class PruningModel(nn.Module):
 

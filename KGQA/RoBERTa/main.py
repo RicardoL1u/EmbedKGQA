@@ -6,7 +6,6 @@ import torch.nn as nn
 import pickle
 from tqdm import tqdm
 import argparse
-import pickle
 import json
 from dataloader import DatasetMetaQA, DatasetAnonyQA
 from model import RelationExtractor

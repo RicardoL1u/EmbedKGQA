@@ -2,12 +2,8 @@ import torch
 import torch.nn as nn
 import torch.nn.utils
 import torch.nn.functional as F
-from torch.autograd import Variable
-import torch.nn.functional as F
 import numpy as np
-from torch.nn.init import xavier_normal_
-from transformers import *
-import random
+from transformers import RobertaModel
 
 class RelationExtractor(nn.Module):
 

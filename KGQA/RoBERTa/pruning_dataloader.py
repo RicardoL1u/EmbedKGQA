@@ -1,15 +1,6 @@
 import torch
-import random
 from torch.utils.data import Dataset, DataLoader
-from collections import defaultdict
-import os
-import unicodedata
-import re
-# import time
-from collections import defaultdict
-from tqdm import tqdm
-import numpy as np
-from transformers import *
+from transformers import RobertaTokenizer
 
 
 
