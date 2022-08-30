@@ -1,5 +1,6 @@
+import argparse
 import re
-import torch
+import numpy as np
 import json
 import pickle
 from tqdm import tqdm
@@ -28,6 +29,8 @@ print(f'the entity num of big5m by wyf is {len(entity_set)}')
 with open('/data/lyt/docRed/refine/ans_list.json') as f:
     ans_set = set(json.load(f))
 
+topic_entity_set = set(json.load(open('/data/lyt/exp/EmbedKGQA/topic_entity.json')))
+
 correct_part = entity_set.intersection(ans_set)
 print(f'intersection len: {len(correct_part)}')
 print(f'sub KG len: {len(entity_set)}')
@@ -35,13 +38,29 @@ print(f'ans len: {len(ans_set)}')
 print(f'acc: {len(correct_part)/len(entity_set)}')
 print(f'recall: {len(correct_part)/len(ans_set)}')
 
+all_set = entity_set.union(topic_entity_set)
+
 entity_dict = {}
-for entity in entity_set:
+for entity in all_set:
     idx = entity2id[entity]
     entity_dict[entity] = entity_embeddings[idx]
 
-with open('complex_wyf_big5m.pkl','wb') as f:
-    pickle.dump(entity_dict,f)
 
+complex_wyf_big5m = argparse.Namespace()
+complex_wyf_big5m.graph = argparse.Namespace()
+complex_wyf_big5m.solver = argparse.Namespace()
+complex_wyf_big5m.graph.entity2id = {}
+complex_wyf_big5m.solver.entity_embeddings = []
+idx = 0 
+for k,v in entity_dict.items():
+    complex_wyf_big5m.graph.entity2id[k] = idx
+    complex_wyf_big5m.solver.entity_embeddings.append(v)
+    idx += 1
+
+complex_wyf_big5m.solver.entity_embeddings = np.array(complex_wyf_big5m.solver.entity_embeddings)
+
+
+with open('complex_wyf_big5m.pkl','wb') as f:
+    pickle.dump(complex_wyf_big5m,f)
 
 
