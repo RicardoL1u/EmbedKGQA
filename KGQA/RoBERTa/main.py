@@ -251,7 +251,6 @@ print(f'the args is')
 print(args)
 
 if args.mode == 'train':
-    print(args)
     train(data_path=data_path, 
     neg_batch_size=args.neg_batch_size, 
     batch_size=args.batch_size,
@@ -280,9 +279,7 @@ if args.mode == 'train':
     outfile=args.outfile,
     do_batch_norm=args.do_batch_norm)
 
-
-
-elif args.mode == 'eval':
+if args.mode == 'eval' or args.mode == 'train':
     eval(data_path = test_data_path,
     load_from=args.outfile+'_best_score_model',
     gpu=args.gpu,
