@@ -3,7 +3,8 @@ from torch.utils.data import Dataset, DataLoader
 from collections import defaultdict
 from collections import defaultdict
 from transformers import RobertaTokenizer
-
+import random
+random.seed(42)
 
 class DatasetAnonyQA(Dataset):
     def __init__(self, data, entity2idx,tokenizer):
@@ -13,6 +14,7 @@ class DatasetAnonyQA(Dataset):
         self.pos_dict = defaultdict(list)
         self.neg_dict = defaultdict(list)
         self.tokenizer = tokenizer
+        self.mode = 'train'
         # self.tokenizer = RobertaTokenizer.from_pretrained('roberta-base')
         # special_tokens = ['<spt>']
         # print(f'add speciall tokens {special_tokens}')
@@ -49,7 +51,15 @@ class DatasetAnonyQA(Dataset):
             return_tensors='pt'
         )
         
-        head_id = self.entity2idx[data_point['topic_entity']]
+        # head_id = self.entity2idx[data_point['topic_entity']]
+        head_id = None
+        for entity in data_point['topic_entity']:
+            if entity in self.entity2idx.keys():
+                head_id = self.entity2idx[entity]
+                break
+
+        if head_id is None:
+            head_id = self.entity2idx[random.choice(list(self.entity2idx.keys()))]
         tail_ids = []
         not_in_kg = []
         for tail_name in data_point['ans_ids']:
