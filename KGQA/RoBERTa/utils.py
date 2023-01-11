@@ -132,6 +132,7 @@ def inTopk(scores, ans, k):
 
 def validate(dataset,model,device,writeCandidatesToFile=False,data_path=None,hops=None):
     total_acc = 0
+    dataset.mode = 'eval'
     if writeCandidatesToFile and data_path is not None:
         with open(data_path) as f:
             ori_data_list = json.load(f)
