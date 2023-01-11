@@ -1,21 +1,21 @@
 # relation dim should be half of entity embedding
 TRANSFORMERS_OFFLINE=1 python3 main.py \
-    --mode eval \
+    --mode train \
     --relation_dim 256 \
     --do_batch_norm 1 \
     --gpu 0 \
-    --freeze 0 \
-    --batch_size 4 \
+    --freeze 1 \
+    --batch_size 8 \
     --validate_every 1 \
-    --hops complex_wyf_big5m \
+    --hops wyf-100-wikidata5m \
     --lr 0.00002 \
     --entdrop 0.0 \
     --reldrop 0.0 \
     --scoredrop 0.0 \
     --decay 1.0 \
     --model ComplEx \
-    --patience 4 \
+    --patience 20 \
     --ls 0.05 \
     --l3_reg 0.001 \
-    --nb_epochs 30 \
-    --outfile complex_wyf_big5m
+    --nb_epochs 300 \
+    --outfile wyf-100-wikidata5m
