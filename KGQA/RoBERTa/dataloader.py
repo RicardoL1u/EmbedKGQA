@@ -60,7 +60,10 @@ class DatasetAnonyQA(Dataset):
             else:
                 not_in_kg.append(tail_name)
         tail_onehot = self.toOneHot(tail_ids)
-        return tokenized_result['input_ids'].squeeze(), tokenized_result['attention_mask'].squeeze(), torch.tensor(head_id), tail_onehot, not_in_kg 
+        if self.mode == 'train':
+            return tokenized_result['input_ids'].squeeze(), tokenized_result['attention_mask'].squeeze(), torch.tensor(head_id), tail_onehot
+        else:
+            return tokenized_result['input_ids'].squeeze(), tokenized_result['attention_mask'].squeeze(), torch.tensor(head_id), tail_onehot, not_in_kg 
 
 class DatasetMetaQA(Dataset):
     def __init__(self, data, entity2idx,tokenizer):
