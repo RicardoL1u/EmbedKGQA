@@ -1,6 +1,4 @@
-from distutils.errors import LinkError
 import json
-import os
 phases = ['train','eval','test']
 data_path = '/data/lyt/exp/EmbedKGQA'
 
