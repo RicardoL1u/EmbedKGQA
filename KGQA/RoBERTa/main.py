@@ -77,9 +77,9 @@ def train(data_path, neg_batch_size, batch_size, shuffle, num_workers, nb_epochs
     device = torch.device(gpu if use_cuda else "cpu")
     tokenizer = RobertaTokenizer.from_pretrained('roberta-base')
     if '5m' in hops:
-        special_tokens = ['<spt>']
-        print(f'add speciall tokens {special_tokens}')
-        tokenizer.add_tokens(special_tokens,special_tokens=True)
+        special_token_list = ['<spt>']
+        print(f'add speciall tokens {special_token_list}')
+        tokenizer.add_tokens(special_token_list,special_tokens=True)
 
     dataset = DatasetMetaQA(process_text_file(data_path, split=False), entity2idx,tokenizer) if '5m' not in hops \
         else DatasetAnonyQA(json.load(open(data_path)), entity2idx,tokenizer)
@@ -203,9 +203,9 @@ def eval(data_path,
 
     tokenizer = RobertaTokenizer.from_pretrained('roberta-base')
     if '5m' in hops:
-        special_tokens = ['<spt>']
-        print(f'add speciall tokens {special_tokens}')
-        tokenizer.add_tokens(special_tokens,special_tokens=True)
+        special_token_list = ['<spt>']
+        print(f'add speciall tokens {special_token_list}')
+        tokenizer.add_tokens(special_token_list,special_tokens=True)
 
     dataset = DatasetMetaQA(process_text_file(data_path, split=False), entity2idx,tokenizer) if '5m' not in hops \
         else DatasetAnonyQA(json.load(open(data_path)), entity2idx,tokenizer)
@@ -238,14 +238,18 @@ hops = args.hops
 
 model_name = args.model
 
-if 'webqsp' in hops:
+if 'webqsp' in args.hops:
     data_path = '../../data/QA_data/WebQuestionsSP/qa_train_webqsp.txt'
     valid_data_path = '../../data/QA_data/WebQuestionsSP/qa_test_webqsp.txt'
     test_data_path = '../../data/QA_data/WebQuestionsSP/qa_test_webqsp.txt'
-elif '5m' in hops:
-    data_path = '/data/lyt/exp/EmbedKGQA/train.json'
-    valid_data_path = '/data/lyt/exp/EmbedKGQA/eval.json'
-    test_data_path = '/data/lyt/exp/EmbedKGQA/test.json'
+elif '5m' in args.hops and 'cheat' in args.hops:
+    data_path = '/data/lyt/exp/EmbedKGQA/cheat/train.json'
+    valid_data_path = '/data/lyt/exp/EmbedKGQA/cheat/eval.json'
+    test_data_path = '/data/lyt/exp/EmbedKGQA/cheat/test.json'
+elif '5m' in args.hops:
+    data_path = '/data/lyt/exp/acl/embedKGQA/train.json'
+    valid_data_path = '/data/lyt/exp/acl/embedKGQA/valid.json'
+    test_data_path = '/data/lyt/exp/acl/embedKGQA/iid_test.json'
 
 print(f'the args is')
 print(args)
