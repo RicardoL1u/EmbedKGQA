@@ -3,7 +3,7 @@ TRANSFORMERS_OFFLINE=1 python3 main.py \
     --mode train \
     --relation_dim 256 \
     --do_batch_norm 1 \
-    --gpu 2 \
+    --gpu 3 \
     --freeze 0 \
     --batch_size 8 \
     --validate_every 1 \
@@ -18,4 +18,5 @@ TRANSFORMERS_OFFLINE=1 python3 main.py \
     --ls 0.05 \
     --l3_reg 0.001 \
     --nb_epochs 500 \
-    --outfile complex_wyf_big5m
+    --question_type template \
+    --outfile complex_wyf_big5m_template

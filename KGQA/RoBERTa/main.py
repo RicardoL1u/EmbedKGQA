@@ -26,6 +26,7 @@ parser.add_argument('--ls', type=float, default=0.0)
 parser.add_argument('--validate_every', type=int, default=5)
 parser.add_argument('--model', type=str, default='ComplEx')
 parser.add_argument('--mode', type=str, default='eval')
+parser.add_argument('--question_type', type=str, choices=['human','gpt','template'])
 parser.add_argument('--outfile', type=str, default='best_score_model')
 parser.add_argument('--batch_size', type=int, default=1024)
 parser.add_argument('--dropout', type=float, default=0.1)
@@ -50,6 +51,7 @@ parser.add_argument('--do_batch_norm', type=str2bool, default=True)
 
 os.environ["CUDA_VISIBLE_DEVICES"]="0,1,2,3,4,5,6,7"
 args = parser.parse_args()
+question_type = args.question_type
 
 
 def train(data_path, neg_batch_size, batch_size, shuffle, num_workers, nb_epochs, embedding_dim, hidden_dim, relation_dim, gpu, use_cuda,patience, freeze, validate_every, hops, lr, entdrop, reldrop, scoredrop, l3_reg, model_name, decay, ls, load_from, outfile, do_batch_norm, valid_data_path=None):
@@ -144,8 +146,8 @@ def train(data_path, neg_batch_size, batch_size, shuffle, num_workers, nb_epochs
                     best_model = model.state_dict()
                     print(hops + " hop Validation accuracy (no relation scoring) increased from previous epoch", score)
                     # writeToFile(answers, 'results_' + model_name + '_' + hops + '.txt')
-                    torch.save(best_model, f"checkpoints/roberta_finetune/{outfile}_best_score_model.pt")
-                    torch.save(best_model, "checkpoints/roberta_finetune/" + outfile + ".pt")
+                    torch.save(best_model, f"checkpoints/roberta_finetune/{question_type}/{outfile}_best_score_model.pt")
+                    torch.save(best_model, f"checkpoints/roberta_finetune/{question_type}/" + outfile + ".pt")
                 elif (score < best_score + eps) and (no_update < patience):
                     no_update +=1
                     print("Validation accuracy decreases to %f from %f, %d more epoch to check"%(score, best_score, patience-no_update))
@@ -217,7 +219,7 @@ def eval(data_path,
     print('Model created!')
     if load_from != '':
         # model.load_state_dict(torch.load("checkpoints/roberta_finetune/" + load_from + ".pt"))
-        fname = "checkpoints/roberta_finetune/" + load_from + ".pt"
+        fname = "checkpoints/roberta_finetune/{question_type}/" + load_from + ".pt"
         print('Loading from %s' % fname)
         model.load_state_dict(torch.load(fname, map_location=torch.device('cpu')))
         print('Loaded successfully!')
@@ -247,9 +249,9 @@ elif '5m' in args.hops and 'cheat' in args.hops:
     valid_data_path = '/data/lyt/exp/EmbedKGQA/cheat/eval.json'
     test_data_path = '/data/lyt/exp/EmbedKGQA/cheat/test.json'
 elif '5m' in args.hops:
-    data_path = '/data/lyt/exp/rush/embedKGQA/human/train.json'
-    valid_data_path = '/data/lyt/exp/rush/embedKGQA/human/valid.json'
-    test_data_path = '/data/lyt/exp/rush/embedKGQA/human/small_iid_test.json'
+    data_path = f'/data/lyt/exp/rush/embedKGQA/{question_type}/train.json'
+    valid_data_path = f'/data/lyt/exp/rush/embedKGQA/{question_type}/valid.json'
+    test_data_path = f'/data/lyt/exp/rush/embedKGQA/{question_type}/small_iid_test.json'
 
 print(f'the args is')
 print(args)
@@ -297,7 +299,7 @@ if args.mode == 'eval' or args.mode == 'train':
     do_batch_norm=args.do_batch_norm,
     use_cuda=args.use_cuda)
 
-    test_data_path = '/data/lyt/exp/rush/embedKGQA/human/small_ood_test.json'
+    test_data_path = f'/data/lyt/exp/rush/embedKGQA/{question_type}/small_ood_test.json'
     eval(data_path = test_data_path,
     load_from=args.outfile+'_best_score_model',
     gpu=args.gpu,
@@ -312,7 +314,7 @@ if args.mode == 'eval' or args.mode == 'train':
     do_batch_norm=args.do_batch_norm,
     use_cuda=args.use_cuda)
 
-    test_data_path = '/data/lyt/exp/rush/embedKGQA/human/valid.json'
+    test_data_path = f'/data/lyt/exp/rush/embedKGQA/{question_type}/valid.json'
     eval(data_path = test_data_path,
     load_from=args.outfile+'_best_score_model',
     gpu=args.gpu,
