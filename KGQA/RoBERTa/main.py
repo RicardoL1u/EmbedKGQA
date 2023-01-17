@@ -247,9 +247,9 @@ elif '5m' in args.hops and 'cheat' in args.hops:
     valid_data_path = '/data/lyt/exp/EmbedKGQA/cheat/eval.json'
     test_data_path = '/data/lyt/exp/EmbedKGQA/cheat/test.json'
 elif '5m' in args.hops:
-    data_path = '/data/lyt/exp/acl/embedKGQA/train.json'
-    valid_data_path = '/data/lyt/exp/acl/embedKGQA/valid.json'
-    test_data_path = '/data/lyt/exp/acl/embedKGQA/iid_test.json'
+    data_path = '/data/lyt/exp/rush/embedKGQA/human/train.json'
+    valid_data_path = '/data/lyt/exp/rush/embedKGQA/human/valid.json'
+    test_data_path = '/data/lyt/exp/rush/embedKGQA/human/small_iid_test.json'
 
 print(f'the args is')
 print(args)
@@ -296,3 +296,33 @@ if args.mode == 'eval' or args.mode == 'train':
     model_name=args.model,
     do_batch_norm=args.do_batch_norm,
     use_cuda=args.use_cuda)
+
+    test_data_path = '/data/lyt/exp/rush/embedKGQA/human/small_ood_test.json'
+    eval(data_path = test_data_path,
+    load_from=args.outfile+'_best_score_model',
+    gpu=args.gpu,
+    hidden_dim=args.hidden_dim,
+    relation_dim=args.relation_dim,
+
+    embedding_dim=args.embedding_dim,
+    hops=args.hops,
+    batch_size=args.batch_size,
+    num_workers=args.num_workers,
+    model_name=args.model,
+    do_batch_norm=args.do_batch_norm,
+    use_cuda=args.use_cuda)
+
+    test_data_path = '/data/lyt/exp/rush/embedKGQA/human/valid.json'
+    eval(data_path = test_data_path,
+    load_from=args.outfile+'_best_score_model',
+    gpu=args.gpu,
+    hidden_dim=args.hidden_dim,
+    relation_dim=args.relation_dim,
+    embedding_dim=args.embedding_dim,
+    hops=args.hops,
+    batch_size=args.batch_size,
+    num_workers=args.num_workers,
+    model_name=args.model,
+    do_batch_norm=args.do_batch_norm,
+    use_cuda=args.use_cuda)
+
