@@ -20,7 +20,7 @@ sys.path.append("../..") # Adds higher directory to python modules path.
 # from kge.util.io import load_checkpoint
 
 print('loading wikidata qid2entity_name')
-with open('/data/lyt/wikidata-full/wikidata-item-en-label.json') as f:
+with open('/data/lyt/wikidata-5m/wikidata-5m-entity-en-label.json') as f:
     qid2entity_name_map = json.load(f)
 print('loaded qid 2 entity name')
 
