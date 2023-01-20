@@ -1,6 +1,7 @@
 import json
 import torch
 import numpy as np
+import os
 from pathlib import Path
 # from torch.utils.data import Dataset, DataLoader
 # import torch.nn as nn
@@ -130,7 +131,7 @@ def inTopk(scores, ans, k):
             result = True
     return result
 
-def validate(dataset,model,device,writeCandidatesToFile=False,data_path=None,hops=None):
+def validate(dataset,model,device,writeCandidatesToFile=False,data_path=None,hops=None,output_path=None):
     total_acc = 0
     dataset.mode = 'eval'
     if writeCandidatesToFile and data_path is not None:
@@ -172,7 +173,7 @@ def validate(dataset,model,device,writeCandidatesToFile=False,data_path=None,hop
             ori_data_list[idx]['pred_names'] = [qid2entity_name_map[qid] for qid in ori_data_list[idx]['pred_qids']]
     if writeCandidatesToFile:
         data_path = Path(data_path)
-        with open(data_path.parent.joinpath(f'{hops}_{data_path.name}'),'w') as f:
+        with open(os.path.join(output_path,f'{hops}_{data_path.parent.name}_{data_path.name}'),'w') as f:
             json.dump(ori_data_list,f,indent=4,ensure_ascii=False)
 
     return None, total_acc / len(dataset)
