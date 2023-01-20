@@ -48,6 +48,7 @@ parser.add_argument('--use_cuda', type=bool, default=True)
 parser.add_argument('--patience', type=int, default=5)
 parser.add_argument('--freeze', type=str2bool, default=True)
 parser.add_argument('--do_batch_norm', type=str2bool, default=True)
+parser.add_argument('--output_dir', type=str)
 
 os.environ["CUDA_VISIBLE_DEVICES"]="0,1,2,3,4,5,6,7"
 args = parser.parse_args()
@@ -219,7 +220,7 @@ def eval(data_path,
     print('Model created!')
     if load_from != '':
         # model.load_state_dict(torch.load("checkpoints/roberta_finetune/" + load_from + ".pt"))
-        fname = "checkpoints/roberta_finetune/{question_type}/" + load_from + ".pt"
+        fname = f"checkpoints/roberta_finetune/{question_type}/" + load_from + ".pt"
         print('Loading from %s' % fname)
         model.load_state_dict(torch.load(fname, map_location=torch.device('cpu')))
         print('Loaded successfully!')
@@ -228,8 +229,9 @@ def eval(data_path,
         exit(0)
     
     model.to(device)
+    output_dir = args.output_dir
     answers, score = validate(dataset=dataset,model=model,device=device,
-                                 writeCandidatesToFile=True,data_path=data_path,hops=hops)
+                                 writeCandidatesToFile=True,data_path=data_path,hops=hops,output_path=output_dir)
     print('Score', score)
 
 
@@ -249,9 +251,9 @@ elif '5m' in args.hops and 'cheat' in args.hops:
     valid_data_path = '/data/lyt/exp/EmbedKGQA/cheat/eval.json'
     test_data_path = '/data/lyt/exp/EmbedKGQA/cheat/test.json'
 elif '5m' in args.hops:
-    data_path = f'/data/lyt/exp/rush/embedKGQA/{question_type}/train.json'
-    valid_data_path = f'/data/lyt/exp/rush/embedKGQA/{question_type}/valid.json'
-    test_data_path = f'/data/lyt/exp/rush/embedKGQA/{question_type}/small_iid_test.json'
+    data_path = f'/data0/lyt/exp/rush/embedKGQA/{question_type}/train.json'
+    valid_data_path = f'/data0/lyt/exp/rush/embedKGQA/{question_type}/valid.json'
+    test_data_path = f'/data0/lyt/exp/rush/embedKGQA/{question_type}/small_iid_test.json'
 
 print(f'the args is')
 print(args)
@@ -299,7 +301,7 @@ if args.mode == 'eval' or args.mode == 'train':
     do_batch_norm=args.do_batch_norm,
     use_cuda=args.use_cuda)
 
-    test_data_path = f'/data/lyt/exp/rush/embedKGQA/{question_type}/small_ood_test.json'
+    test_data_path = f'/data0/lyt/exp/rush/embedKGQA/{question_type}/small_ood_test.json'
     eval(data_path = test_data_path,
     load_from=args.outfile+'_best_score_model',
     gpu=args.gpu,
@@ -314,7 +316,7 @@ if args.mode == 'eval' or args.mode == 'train':
     do_batch_norm=args.do_batch_norm,
     use_cuda=args.use_cuda)
 
-    test_data_path = f'/data/lyt/exp/rush/embedKGQA/{question_type}/valid.json'
+    test_data_path = f'/data0/lyt/exp/rush/embedKGQA/{question_type}/valid.json'
     eval(data_path = test_data_path,
     load_from=args.outfile+'_best_score_model',
     gpu=args.gpu,
@@ -327,4 +329,34 @@ if args.mode == 'eval' or args.mode == 'train':
     model_name=args.model,
     do_batch_norm=args.do_batch_norm,
     use_cuda=args.use_cuda)
+
+
+    for other_type in set(['human','gpt','template']) - set([question_type]):
+        test_data_path = f'/data0/lyt/exp/rush/embedKGQA/{other_type}/small_ood_test.json'
+        eval(data_path = test_data_path,
+        load_from=args.outfile+'_best_score_model',
+        gpu=args.gpu,
+        hidden_dim=args.hidden_dim,
+        relation_dim=args.relation_dim,
+        embedding_dim=args.embedding_dim,
+        hops=args.hops,
+        batch_size=args.batch_size,
+        num_workers=args.num_workers,
+        model_name=args.model,
+        do_batch_norm=args.do_batch_norm,
+        use_cuda=args.use_cuda)
+
+        test_data_path = f'/data0/lyt/exp/rush/embedKGQA/{other_type}/small_iid_test.json'
+        eval(data_path = test_data_path,
+        load_from=args.outfile+'_best_score_model',
+        gpu=args.gpu,
+        hidden_dim=args.hidden_dim,
+        relation_dim=args.relation_dim,
+        embedding_dim=args.embedding_dim,
+        hops=args.hops,
+        batch_size=args.batch_size,
+        num_workers=args.num_workers,
+        model_name=args.model,
+        do_batch_norm=args.do_batch_norm,
+        use_cuda=args.use_cuda)
 
