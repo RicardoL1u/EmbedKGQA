@@ -1,3 +1,5 @@
+# TODO: THIS CODE CAN NOT REFINE THREE TYPE QUESTION IN ONCE
+
 import json
 import os
 from tqdm import tqdm
@@ -12,7 +14,7 @@ def get_predicted_url(title:str)->str:
     # title = title.replace('\'','%27')
     return prefix+title
 
-data_path = '/data/lyt/exp/acl'
+data_path = '/data/lyt/exp/rush/qg/qs'
 topic_entity_set = set()
 
 with open("KGQA/RoBERTa/complex_wikidata5m.pkl", "rb") as fin:
@@ -33,19 +35,13 @@ url2qid_map = {}
 with open('url2qid.json') as f:
     url2qid_map = json.load(f)
 
-topic_entities = {
-    'train':[],
-    'valid':[],
-    'iid_test':[],
-    'ood_test':[],
-}
+idx2topic_entity = {}
 
 regex = "EntityPage\/(Q[0-9]+)"
 
 
-for phase in ['iid_test','ood_test','valid','train']:
-    datas = json.load(open(os.path.join(data_path,f'link_{phase}.json')))
-    topic_entities[phase] = [None] * len(datas)
+for phase in ['train','valid','iid_test','ood_test']:
+    datas = json.load(open(os.path.join(data_path,f'link_template_question_{phase}.json')))
     for idx,data in tqdm(zip(range(len(datas)),datas)):
         mark = False
         for tuple_str in data['pred_tuples_string']:
@@ -54,10 +50,10 @@ for phase in ['iid_test','ood_test','valid','train']:
             if entity_url in url2qid_map and url2qid_map[entity_url] in entity_5m_set:
                 qid = url2qid_map[entity_url]
                 topic_entity_set.add(qid)
-                if topic_entities[phase][idx] == None:
-                    topic_entities[phase][idx] = [qid]
+                if data['id'] not in idx2topic_entity.keys():
+                    idx2topic_entity[data['id']] = [qid]
                 else:
-                    topic_entities[phase][idx].append(qid)
+                    idx2topic_entity[data['id']].append(qid)
                 mark = True
                 # break
         if not mark:
@@ -77,8 +73,8 @@ for phase in ['iid_test','ood_test','valid','train']:
                 if type(qids) == list and len(qids) > 0:  
                     url2qid_map[entity_url]=qids[0]
                     print('insert one!')
-                    if topic_entities[phase][idx] == None and qids[0] in entity_5m_set:
-                        topic_entities[phase][idx] = [qids[0]]
+                    if data['id'] not in idx2topic_entity.keys() and qids[0] in entity_5m_set:
+                        idx2topic_entity[data['id']] = [qids[0]]
                         topic_entity_set.add(qids[0])
                         print('find one!')
                 else:
@@ -87,11 +83,10 @@ for phase in ['iid_test','ood_test','valid','train']:
 with open('url2qid.json','w') as f:
     json.dump(url2qid_map,f,indent=4,ensure_ascii=False)
 
-assert all(topic_entities['train']) and all(topic_entities['valid']) and all(topic_entities['iid_test']) and all(topic_entities['ood_test'])
 assert topic_entity_set.issubset(entity_5m_set)
 
-with open(os.path.join(data_path,'link_result.json'),'w') as f:
-    json.dump(topic_entities,f,indent=4,ensure_ascii=False)
+with open(os.path.join('/data/lyt/exp/rush/kgqa/','link_template_question_result.json'),'w') as f:
+    json.dump(idx2topic_entity,f,indent=4,ensure_ascii=False)
 
 # with open('topic_entity.json','w') as f:
 #     json.dump(list(topic_entity_set),f,indent=4,ensure_ascii=False)

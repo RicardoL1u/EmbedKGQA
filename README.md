@@ -81,6 +81,13 @@ If you used our work or found it helpful, please use the following citation:
   author={Saxena, Apoorv and Tripathi, Aditay and Talukdar, Partha},
   booktitle={Proceedings of the 58th Annual Meeting of the Association for Computational Linguistics},
   pages={4498--4507},
-  year={2020}
+  year={2020}****
 }
 ```
+
+
+# AnnoyQA
+1. BLINK entity link, python example.py
+2. python topic_entity_refine.py
+3. python kgqa_dataset.py
+4. python dataset_rush_preprocess.py
