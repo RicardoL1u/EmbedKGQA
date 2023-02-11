@@ -14,7 +14,7 @@ kg_name = 'wyf-500-wikidata5m'
 for question_type in ['human','gpt','template']:
     print("="*75 + question_type + "="*75)
     for result_type in ['human','gpt','template']:
-        print("*"*50 + result_type + "="*50)
+        print("*"*50 + result_type + "*"*50)
         for file in [f'{kg_name}_{result_type}_small_iid_test.json',f'{kg_name}_{result_type}_small_ood_test.json']:
             dataset = json.load(open(datapath+question_type+"/"+file))
             total_pred_name_list = [[pred['label'] for pred in data['pred_names']] for data in dataset]        
